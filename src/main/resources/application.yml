@@ -1,0 +1,5 @@
+server:
+  port: 8080
+
+
+jwt.secret-key: c88d74ba-1554-48a4-b549-b926f5d77c9e
