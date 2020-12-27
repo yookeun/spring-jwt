@@ -1,5 +1,6 @@
 package com.example.springjwt.control;
 
+import com.example.springjwt.util.ResultCode;
 import com.example.springjwt.util.ResultJson;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -16,7 +17,7 @@ public class ApiController {
     @ResponseBody
     public ResultJson hello(HttpServletRequest request) {
         ResultJson resultJson = new ResultJson();
-        resultJson.setCode("200");
+        resultJson.setCode(ResultCode.SUCCESS.getCode());
         resultJson.setMsg("Hello, " + request.getSession().getAttribute("userId").toString());
         return resultJson;
     }

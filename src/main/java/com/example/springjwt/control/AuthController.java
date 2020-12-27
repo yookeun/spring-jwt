@@ -3,6 +3,7 @@ package com.example.springjwt.control;
 import com.example.springjwt.entity.Users;
 import com.example.springjwt.repository.UserRepository;
 import com.example.springjwt.util.JwtUtil;
+import com.example.springjwt.util.ResultCode;
 import com.example.springjwt.util.ResultJson;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -28,12 +29,12 @@ public class AuthController {
         if (users != null && passwordEncoder.matches(password, users.getPassword())) {
             token = jwtUtil.generateToken(users);
         } else {
-            resultJson.setCode("900");
-            resultJson.setMsg("Login Failed");
+            resultJson.setCode(ResultCode.LOGIN_FAIL.getCode());
+            resultJson.setMsg(ResultCode.LOGIN_FAIL.getMsg());
             return resultJson;
         }
-        resultJson.setCode("200");
-        resultJson.setMsg("Success");
+        resultJson.setCode(ResultCode.SUCCESS.getCode());
+        resultJson.setMsg(ResultCode.SUCCESS.getMsg());
         resultJson.setToken(token);
         return resultJson;
     }

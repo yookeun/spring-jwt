@@ -2,6 +2,9 @@ package com.example.springjwt.filter;
 
 import com.example.springjwt.config.UserDetailService;
 import com.example.springjwt.util.JwtUtil;
+import com.example.springjwt.util.ResultCode;
+import com.example.springjwt.util.ResultJson;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -46,21 +49,44 @@ public class JwtRequestFilter extends OncePerRequestFilter {
             username = jwtUtil.extractUsername(token);
         }
 
-        if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailService.loadUserByUsername(username);
+        //invalid token check
+        if (username == null) {
+            response = exceptionCall(response, "invalidToken");
+            return;
+        }
 
-            //token 유효성 체크
-            if (jwtUtil.validateToken(token, userDetails)) {
-                UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken
-                        = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
-                usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
-                session.setAttribute("userId", username);
-            } else {
-                System.out.println("token invalid");
-            }
+        //expired token check
+        if (jwtUtil.isTokenExpired(token)) {
+            response = exceptionCall(response, "expiredToken");
+            return;
+        }
+
+        if (SecurityContextHolder.getContext().getAuthentication() == null) {
+            UserDetails userDetails = userDetailService.loadUserByUsername(username);
+            UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken
+                    = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
+            session.setAttribute("userId", username);
+
         }
         filterChain.doFilter(request, response);
+    }
 
+    private HttpServletResponse exceptionCall(HttpServletResponse response, String errorType) throws IOException {
+        ResultJson resultJson = new ResultJson();
+        if (errorType.equals("invalidToken")) {
+            resultJson.setCode(ResultCode.INVALID_TOKEN.getCode());
+            resultJson.setMsg(ResultCode.INVALID_TOKEN.getMsg());
+        } else if (errorType.equals("expiredToken")) {
+            resultJson.setCode(ResultCode.EXPIRED_TOKEN.getCode());
+            resultJson.setMsg(ResultCode.EXPIRED_TOKEN.getMsg());
+        }
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        response.getWriter().write(objectMapper.writeValueAsString(resultJson));
+        response.setCharacterEncoding("utf-8");
+        response.setContentType("application/json");
+        return response;
     }
 }

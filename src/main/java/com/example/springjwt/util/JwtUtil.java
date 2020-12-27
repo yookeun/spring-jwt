@@ -2,12 +2,13 @@ package com.example.springjwt.util;
 
 import com.example.springjwt.entity.Users;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.security.SignatureException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -35,13 +36,20 @@ public class JwtUtil {
 
     }
 
-    private Claims extractAllClaims(String token) {
+    private Claims extractAllClaims(String token) throws SignatureException {
         String secretKeyEncodeBase64 = Encoders.BASE64.encode(secretKey.getBytes());
-        return Jwts.parserBuilder().setSigningKey(secretKeyEncodeBase64).build().parseClaimsJws(token).getBody();
+        Claims claims = null;
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(secretKeyEncodeBase64).build().parseClaimsJws(token).getBody();
+        } catch (JwtException e) {
+            return null;
+        }
+        return claims;
     }
 
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) throws SignatureException {
         final Claims claims = extractAllClaims(token);
+        if (claims == null) return null;
         return claimsResolver.apply(claims);
     }
 
@@ -57,10 +65,11 @@ public class JwtUtil {
         return extractClaim(token, Claims::getSubject);
     }
 
-    public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-    }
+//    public Boolean validateToken(String token, UserDetails userDetails) {
+//        final String username = extractUsername(token);
+//        if (username == null) return false;
+//        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+//    }
 
     public String generateToken(Users users) {
         Map<String, Object> claims = new HashMap<>();
