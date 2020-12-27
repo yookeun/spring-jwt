@@ -1,6 +1,6 @@
 package com.example.springjwt.control;
 
-import com.example.springjwt.entity.User;
+import com.example.springjwt.entity.Users;
 import com.example.springjwt.repository.UserRepository;
 import com.example.springjwt.util.JwtUtil;
 import com.example.springjwt.util.ResultJson;
@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AuthController {
     private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
     @PostMapping("/login")
     @ResponseBody
@@ -21,17 +22,19 @@ public class AuthController {
                             @RequestParam(name = "password", required = true) String password) {
 
         ResultJson resultJson = new ResultJson();
-        User user = userRepository.findUserByUserId(userId);
+        Users users = userRepository.findUserByUserId(userId);
         String token = "";
         PasswordEncoder passwordEncoder = PasswordEncoderFactories.createDelegatingPasswordEncoder();
-        if (user != null && passwordEncoder.matches(password, user.getPassword())) {
-            JwtUtil jwtUtil = new JwtUtil();
-            token = jwtUtil.generateToken(user);
+        if (users != null && passwordEncoder.matches(password, users.getPassword())) {
+            token = jwtUtil.generateToken(users);
+        } else {
+            resultJson.setCode("900");
+            resultJson.setMsg("Login Failed");
+            return resultJson;
         }
-        resultJson.setCode("100");
+        resultJson.setCode("200");
         resultJson.setMsg("Success");
         resultJson.setToken(token);
-        return null;
-
+        return resultJson;
     }
 }

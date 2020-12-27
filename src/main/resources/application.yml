@@ -2,4 +2,25 @@ server:
   port: 8080
 
 
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/yktest?serverTimezone=UTC&autoReconnect=true
+    username: root
+    password: Ykkim123!
+    hikari:
+      max-lifetime: 30000
+  jpa:
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    show-sql: false
+    generate-ddl: false
+    hibernate:
+      ddl-auto: none
+
+
+  devtools:
+    livereload:
+      enabled: true
+
 jwt.secret-key: c88d74ba-1554-48a4-b549-b926f5d77c9e

@@ -1,6 +1,6 @@
 package com.example.springjwt.util;
 
-import com.example.springjwt.entity.User;
+import com.example.springjwt.entity.Users;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -8,6 +8,7 @@ import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.Date;
@@ -15,8 +16,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 
+@Component
 public class JwtUtil {
-    @Value("${jwt.secret-key")
+    @Value("${jwt.secret-key}")
     private String secretKey;
 
     private String createToken(Map<String, Object> claims, String subject) {
@@ -60,8 +62,8 @@ public class JwtUtil {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    public String generateToken(User user) {
+    public String generateToken(Users users) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, user.getUserId());
+        return createToken(claims, users.getUserId());
     }
 }

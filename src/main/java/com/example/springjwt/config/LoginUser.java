@@ -1,6 +1,6 @@
 package com.example.springjwt.config;
 
-import com.example.springjwt.entity.User;
+import com.example.springjwt.entity.Users;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
@@ -20,10 +20,10 @@ public class LoginUser implements UserDetails {
     private String role;
     private List<String> roles;
 
-    public LoginUser(User user) {
-        this.username = user.getUserName();
-        this.password = user.getPassword();
-        this.role = user.getRole();
+    public LoginUser(Users users) {
+        this.username = users.getUserId();
+        this.password = users.getPassword();
+        this.role = users.getRole();
     }
 
     @Override

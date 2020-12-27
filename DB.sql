@@ -1,12 +1,5 @@
-CREATE DATABASE `yktest` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
-use `yktest`;
-
-# mysql 서버에서 수행
-CREATE USER 'yktest'@'%' IDENTIFIED BY  'Yktest123!';
-GRANT ALL PRIVILEGES ON yktest.* TO 'yktest'@'%';
-
 # user테이블 생성
-CREATE table `user`
+CREATE table `users`
 (
     `user_key` bigint NOT NULL AUTO_INCREMENT COMMENT '고유키',
     `user_id` varchar(50) NOT NULL COMMENT '계정',
@@ -17,3 +10,7 @@ CREATE table `user`
     PRIMARY KEY(`user_key`),
     UNIQUE KEY(`user_id`)
 );
+
+
+insert into users(user_id, password, user_name, role)
+values('hong', '{bcrypt}$2a$10$5ueMHBZpCGZ9oesru.MQluiHxOLuMzAcmqHqrfier3ILUCxhiXNBm', '홍길동', 'ADMIN_ROLE');
