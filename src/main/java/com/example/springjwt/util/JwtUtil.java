@@ -65,12 +65,6 @@ public class JwtUtil {
         return extractClaim(token, Claims::getSubject);
     }
 
-//    public Boolean validateToken(String token, UserDetails userDetails) {
-//        final String username = extractUsername(token);
-//        if (username == null) return false;
-//        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
-//    }
-
     public String generateToken(Users users) {
         Map<String, Object> claims = new HashMap<>();
         return createToken(claims, users.getUserId());
