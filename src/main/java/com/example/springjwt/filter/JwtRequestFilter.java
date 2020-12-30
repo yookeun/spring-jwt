@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -46,23 +47,37 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         //Header에서 Bearer 부분 이하로 붙은 token을 파싱한다.
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             token = authorizationHeader.substring(7);
-            username = jwtUtil.extractUsername(token);
+            System.out.println(000);
         }
 
+        int result = jwtUtil.checkValidToken(token);
+        if (result == -1) {
+            response = exceptionCall(response, "expiredToken");
+            return;
+        } else if (result < 0) {
+            response = exceptionCall(response, "invalidToken");
+            return;
+        }
+        username = jwtUtil.extractUsername(token);
         //invalid token check
         if (username == null) {
+            System.out.println(111);
             response = exceptionCall(response, "invalidToken");
             return;
         }
 
-        //expired token check
-        if (jwtUtil.isTokenExpired(token)) {
-            response = exceptionCall(response, "expiredToken");
+        //username(userid) check
+        UserDetails userDetails = null;
+        try {
+            userDetails = userDetailService.loadUserByUsername(username);
+        } catch (UsernameNotFoundException e) {
+            System.out.println(222);
+            response = exceptionCall(response, "invalidToken");
             return;
         }
 
+
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailService.loadUserByUsername(username);
             UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken
                     = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
