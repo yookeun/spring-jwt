@@ -6,9 +6,11 @@ spring:
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/yktest?serverTimezone=UTC&autoReconnect=true
+    #url: jdbc:mysql://localhost:3306/yktest?serverTimezone=UTC&autoReconnect=true
+    url: jdbc:mysql://192.168.1.169:3306/yktest?serverTimezone=UTC&autoReconnect=true
     username: root
-    password: Ykkim123!
+    #password: Ykkim123!
+    password: 1234
     hikari:
       max-lifetime: 30000
   jpa:

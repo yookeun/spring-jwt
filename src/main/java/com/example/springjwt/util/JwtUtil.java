@@ -9,7 +9,9 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.security.SignatureException;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.security.Key;
@@ -24,64 +26,43 @@ public class JwtUtil {
     private String secretKey;
 
 
-    private String createToken(Map<String, Object> claims, String subject) {
+    private String createToken(Map<String, Object> claims) {
         String secretKeyEncodeBase64 = Encoders.BASE64.encode(secretKey.getBytes());
         byte[] keyBytes = Decoders.BASE64.decode(secretKeyEncodeBase64);
         Key key = Keys.hmacShaKeyFor(keyBytes);
 
         return Jwts.builder()
                 .signWith(key)
-                .setClaims(claims).setSubject(subject)
+                .setClaims(claims)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                //.setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
-                .setExpiration(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
                 .compact();
 
     }
 
-
-    //JWT토큰이 맞는지 체크
-    public int checkValidToken(String token) {
-        int result = 1;
-        try {
-            String secretKeyEncodeBase64 = Encoders.BASE64.encode(secretKey.getBytes());
-            Jwts.parserBuilder().setSigningKey(secretKeyEncodeBase64).build().parseClaimsJws(token).getBody();
-        } catch (ExpiredJwtException e1) {
-            System.out.println(">>>0");
-            result = 0;
-        } catch (JwtException e2) {
-            System.out.println(">>>-1");
-            result = -1;
-        }
-
-        return result;
-
-    }
-
-    private Claims extractAllClaims(String token) throws SignatureException {
+    private Claims extractAllClaims(String token) {
+        if (StringUtils.isEmpty(token)) return null;
         String secretKeyEncodeBase64 = Encoders.BASE64.encode(secretKey.getBytes());
-        return Jwts.parserBuilder().setSigningKey(secretKeyEncodeBase64).build().parseClaimsJws(token).getBody();
+        Claims claims = null;
+        try {
+            claims = Jwts.parserBuilder().setSigningKey(secretKeyEncodeBase64).build().parseClaimsJws(token).getBody();
+        } catch (JwtException e) {
+            claims = null;
+        }
+        return claims;
     }
 
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) throws SignatureException {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
 
-    public Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
-    public Boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
 
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        final Claims claims = extractAllClaims(token);
+        if (claims == null) return null;
+        else return claims.get("username",String.class);
     }
 
     public String generateToken(Users users) {
         Map<String, Object> claims = new HashMap<>();
-        return createToken(claims, users.getUserId());
+        claims.put("username", users.getUserId());
+        return createToken(claims);
     }
 }

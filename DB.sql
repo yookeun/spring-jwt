@@ -13,4 +13,4 @@ CREATE table `users`
 
 
 insert into users(user_id, password, user_name, role)
-values('hong', '{bcrypt}$2a$10$5ueMHBZpCGZ9oesru.MQluiHxOLuMzAcmqHqrfier3ILUCxhiXNBm', '홍길동', 'ADMIN_ROLE');
+values('hong', '{bcrypt}$2a$10$5ueMHBZpCGZ9oesru.MQluiHxOLuMzAcmqHqrfier3ILUCxhiXNBm', '홍길동', 'ROLE_USER');

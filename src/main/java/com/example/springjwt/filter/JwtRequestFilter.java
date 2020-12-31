@@ -9,7 +9,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -47,44 +46,21 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         //Header에서 Bearer 부분 이하로 붙은 token을 파싱한다.
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             token = authorizationHeader.substring(7);
-            System.out.println(000);
-        }
-
-        int result = jwtUtil.checkValidToken(token);
-        if (result == -1) {
-            response = exceptionCall(response, "expiredToken");
-            return;
-        } else if (result < 0) {
-            response = exceptionCall(response, "invalidToken");
-            return;
         }
         username = jwtUtil.extractUsername(token);
-        //invalid token check
         if (username == null) {
-            System.out.println(111);
-            response = exceptionCall(response, "invalidToken");
+            exceptionCall(response, "invalidToken");
             return;
         }
-
-        //username(userid) check
-        UserDetails userDetails = null;
-        try {
-            userDetails = userDetailService.loadUserByUsername(username);
-        } catch (UsernameNotFoundException e) {
-            System.out.println(222);
-            response = exceptionCall(response, "invalidToken");
-            return;
-        }
-
-
+        UserDetails userDetails = userDetailService.loadUserByUsername(username);
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
             UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken
                     = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             usernamePasswordAuthenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
             session.setAttribute("userId", username);
-
         }
+
         filterChain.doFilter(request, response);
     }
 
@@ -93,9 +69,6 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (errorType.equals("invalidToken")) {
             resultJson.setCode(ResultCode.INVALID_TOKEN.getCode());
             resultJson.setMsg(ResultCode.INVALID_TOKEN.getMsg());
-        } else if (errorType.equals("expiredToken")) {
-            resultJson.setCode(ResultCode.EXPIRED_TOKEN.getCode());
-            resultJson.setMsg(ResultCode.EXPIRED_TOKEN.getMsg());
         }
 
         ObjectMapper objectMapper = new ObjectMapper();
